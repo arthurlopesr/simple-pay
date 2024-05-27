@@ -3,9 +3,11 @@ package com.br.simplepay.usecases.impl;
 import com.br.simplepay.domain.entities.TransactionEntity;
 import com.br.simplepay.domain.entities.WalletEntity;
 import com.br.simplepay.domain.enums.WalletTypeEnum;
+import com.br.simplepay.domain.exceptions.InvalidTransactionException;
 import com.br.simplepay.infra.repositories.TransactionsRepository;
 import com.br.simplepay.infra.repositories.WalletRepository;
 import com.br.simplepay.usecases.TransactionUseCase;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,19 +21,21 @@ public class TransactionUseCaseImpl implements TransactionUseCase {
     }
 
     @Override
+    @Transactional
     public TransactionEntity createTransaction(TransactionEntity transaction) {
-        var newTrasaction = transactionsRepository.save(transaction);
+        validate(transaction);
+        var newTransaction = transactionsRepository.save(transaction);
         var wallet = walletRepository.findById(transaction.payer()).get();
         walletRepository.save(wallet.debit(transaction.value()));
-        return newTrasaction;
+        return newTransaction;
     }
 
-    private boolean validate(TransactionEntity transaction) {
+    private void validate(TransactionEntity transaction) {
         walletRepository.findById(transaction.payee())
-                .flatMap(payee -> walletRepository.findById(transaction.payer())
-                        .map(payer -> isTransactionValid(transaction, payer) ? transaction : null));
-
-        return true;
+                .map(payee -> walletRepository.findById(transaction.payer())
+                        .map(payer -> isTransactionValid(transaction, payer) ? transaction : null)
+                        .orElseThrow(() -> new InvalidTransactionException("Invalid transaction - %s".formatted(transaction))))
+                .orElseThrow(() -> new InvalidTransactionException("Invalid transaction - %s".formatted(transaction)));
     }
 
     private static boolean isTransactionValid(TransactionEntity transaction, WalletEntity payer) {
