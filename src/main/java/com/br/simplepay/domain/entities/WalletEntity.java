@@ -20,4 +20,8 @@ public record WalletEntity(
     public WalletEntity debit(BigDecimal value) {
         return new WalletEntity(walletId, fullName, cpf, email, password, type, balance.subtract(value));
     }
+
+    public WalletEntity credit(BigDecimal value) {
+        return new WalletEntity(walletId, fullName, cpf, email, password, type, balance.add(value));
+    }
 }

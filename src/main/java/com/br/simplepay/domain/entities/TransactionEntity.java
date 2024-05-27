@@ -1,5 +1,6 @@
 package com.br.simplepay.domain.entities;
 
+import jakarta.persistence.Column;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
@@ -17,6 +18,7 @@ public record TransactionEntity(
         BigDecimal value,
 
         @CreatedDate
+        @Column(name = "created_at")
         LocalDateTime createdAt
 ) {
     public TransactionEntity {

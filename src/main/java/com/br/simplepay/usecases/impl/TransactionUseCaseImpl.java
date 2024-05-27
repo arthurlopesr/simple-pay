@@ -33,8 +33,10 @@ public class TransactionUseCaseImpl implements TransactionUseCase {
     public TransactionEntity createTransaction(TransactionEntity transaction) {
         validate(transaction);
         var newTransaction = transactionsRepository.save(transaction);
-        var wallet = walletRepository.findById(transaction.payer()).get();
-        walletRepository.save(wallet.debit(transaction.value()));
+        var walletPayer = walletRepository.findById(transaction.payer()).get();
+        var walletPayee = walletRepository.findById(transaction.payee()).get();
+        walletRepository.save(walletPayer.debit(transaction.value()));
+        walletRepository.save(walletPayee.credit(transaction.value()));
         authorizerUseCase.authorize(transaction);
         notificationUseCase.notify(transaction);
         return newTransaction;
