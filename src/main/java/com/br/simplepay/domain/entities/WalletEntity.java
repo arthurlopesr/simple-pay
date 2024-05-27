@@ -17,4 +17,7 @@ public record WalletEntity(
         int type,
         BigDecimal balance
 ) {
+    public WalletEntity debit(BigDecimal value) {
+        return new WalletEntity(walletId, fullName, cpf, email, password, type, balance.subtract(value));
+    }
 }
