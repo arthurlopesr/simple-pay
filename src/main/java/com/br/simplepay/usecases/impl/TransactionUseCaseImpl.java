@@ -6,6 +6,7 @@ import com.br.simplepay.domain.enums.WalletTypeEnum;
 import com.br.simplepay.domain.exceptions.InvalidTransactionException;
 import com.br.simplepay.infra.repositories.TransactionsRepository;
 import com.br.simplepay.infra.repositories.WalletRepository;
+import com.br.simplepay.usecases.AuthorizerUseCase;
 import com.br.simplepay.usecases.TransactionUseCase;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,12 @@ import org.springframework.stereotype.Service;
 public class TransactionUseCaseImpl implements TransactionUseCase {
     private final TransactionsRepository transactionsRepository;
     private final WalletRepository walletRepository;
+    private final AuthorizerUseCase authorizerUseCase;
 
-    public TransactionUseCaseImpl(TransactionsRepository transactionsRepository, WalletRepository walletRepository) {
+    public TransactionUseCaseImpl(TransactionsRepository transactionsRepository, WalletRepository walletRepository, AuthorizerUseCase authorizerUseCase) {
         this.transactionsRepository = transactionsRepository;
         this.walletRepository = walletRepository;
+        this.authorizerUseCase = authorizerUseCase;
     }
 
     @Override
@@ -27,6 +30,7 @@ public class TransactionUseCaseImpl implements TransactionUseCase {
         var newTransaction = transactionsRepository.save(transaction);
         var wallet = walletRepository.findById(transaction.payer()).get();
         walletRepository.save(wallet.debit(transaction.value()));
+        authorizerUseCase.authorize(transaction);
         return newTransaction;
     }
 
