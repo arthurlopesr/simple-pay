@@ -7,6 +7,7 @@ import com.br.simplepay.domain.exceptions.InvalidTransactionException;
 import com.br.simplepay.infra.repositories.TransactionsRepository;
 import com.br.simplepay.infra.repositories.WalletRepository;
 import com.br.simplepay.usecases.AuthorizerUseCase;
+import com.br.simplepay.usecases.NotificationUseCase;
 import com.br.simplepay.usecases.TransactionUseCase;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,13 @@ public class TransactionUseCaseImpl implements TransactionUseCase {
     private final TransactionsRepository transactionsRepository;
     private final WalletRepository walletRepository;
     private final AuthorizerUseCase authorizerUseCase;
+    private final NotificationUseCase notificationUseCase;
 
-    public TransactionUseCaseImpl(TransactionsRepository transactionsRepository, WalletRepository walletRepository, AuthorizerUseCase authorizerUseCase) {
+    public TransactionUseCaseImpl(TransactionsRepository transactionsRepository, WalletRepository walletRepository, AuthorizerUseCase authorizerUseCase, NotificationUseCase notificationUseCase) {
         this.transactionsRepository = transactionsRepository;
         this.walletRepository = walletRepository;
         this.authorizerUseCase = authorizerUseCase;
+        this.notificationUseCase = notificationUseCase;
     }
 
     @Override
@@ -31,6 +34,7 @@ public class TransactionUseCaseImpl implements TransactionUseCase {
         var wallet = walletRepository.findById(transaction.payer()).get();
         walletRepository.save(wallet.debit(transaction.value()));
         authorizerUseCase.authorize(transaction);
+        notificationUseCase.notify(transaction);
         return newTransaction;
     }
 
