@@ -12,6 +12,8 @@ import com.br.simplepay.usecases.TransactionUseCase;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TransactionUseCaseImpl implements TransactionUseCase {
     private final TransactionsRepository transactionsRepository;
@@ -36,6 +38,11 @@ public class TransactionUseCaseImpl implements TransactionUseCase {
         authorizerUseCase.authorize(transaction);
         notificationUseCase.notify(transaction);
         return newTransaction;
+    }
+
+    @Override
+    public List<TransactionEntity> getAllTransaction() {
+        return transactionsRepository.findAll();
     }
 
     private void validate(TransactionEntity transaction) {
